@@ -12,7 +12,7 @@
 
 ### 项目截图
 
-![](https://s2.loli.net/2023/02/17/NZOTJCgKLzx3k19.png)
+![](https://s2.loli.net/2023/02/17/o93NLaA2d5YwClJ.png)
 
 ### Docker一键运行项目
 
