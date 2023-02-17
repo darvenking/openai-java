@@ -30,7 +30,7 @@ jobs:
       - name: Publish to Docker Repository
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
-          name: dqjdda/openai-java:${{ github.ref_name	 }}
+          name: dqjdda/openai-java:1.0.0
           repository: dqjdda/openai-java
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
