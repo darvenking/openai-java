@@ -8,7 +8,7 @@ spring:
 
 openai:
   # 默认的Token长度
-  max_tokens: ${MAX_TOKENS:300}
+  max_tokens: ${MAX_TOKENS:512}
   # 尝试将值设为 0.9 以获得更有创意的回复，将值设为 0 以获得具有明确答案的回复
   temperature: ${TEMPERATURE:0.6}
   # 默认的AI模型
