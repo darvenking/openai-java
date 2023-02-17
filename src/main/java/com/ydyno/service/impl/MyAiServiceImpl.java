@@ -53,7 +53,7 @@ public class MyAiServiceImpl implements MyAiService {
         Integer maxTokens = openAiConfig.getMaxTokens();
         // 如果没有传入apikey，则使用配置文件中的
         if(StrUtil.isBlank(apikey)){
-            apikey = openAiConfig.getKeys();
+            apikey = openAiConfig.getApiKey();
         } else {
             // 如果传入了apikey，max_tokens不能超过模型的上下文长度。大多数模型的上下文长度为 2048 个标记
             maxTokens = 2048;
