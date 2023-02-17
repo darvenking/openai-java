@@ -8,12 +8,13 @@ spring:
 
 openai:
   # 默认的Token长度
-  max_tokens: 300
+  max_tokens: ${MAX_TOKENS:300}
   # 尝试将值设为 0.9 以获得更有创意的回复，将值设为 0 以获得具有明确答案的回复
-  temperature: 0.6
+  temperature: ${TEMPERATURE:0.6}
   # 默认的AI模型
   model: text-davinci-003
   # 多个Key用,分割
-  keys: sk-xxxxxxxxxxxxxxx,sk-xxxxxxxxxxxxxxx
+  keys: ${KEYS:sk-xxxxxxxxxxxxxxx,sk-xxxxxxxxxxxxxxx}
   # 余额查询的API
   credit_api: https://api.openai.com/dashboard/billing/credit_grants
+  # ${名称:值} 格式以便于在环境变量中配置，默认只需修改值即可
