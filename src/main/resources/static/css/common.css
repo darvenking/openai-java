@@ -973,7 +973,6 @@ body {
   }
 }
 
-
 a.unlinks-deco{
   color: var(--zhuluan-primary-color);
   text-decoration: none;
@@ -981,6 +980,11 @@ a.unlinks-deco{
 .layout-header {
   height: 70px;
   background-color: var(--zhuluan-white-color)
+}
+.header-logo{
+  height: 60px;
+  margin-left: 10px;
+  margin-right: 10px
 }
 .layout-header .logo, .layout-header .logo .links  {
   width: 180px;
@@ -995,6 +999,11 @@ a.unlinks-deco{
 }
 .layout-header .logo .links img {
   height: 100%;
+}
+.links-subtitle{
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration:none
 }
 .layout-header .icon-menu {
   display: none

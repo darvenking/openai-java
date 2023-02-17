@@ -120,3 +120,9 @@ function createArticle() {
     }
   })
 }
+
+function clearReply(){
+    keepText = ""
+    $('#article-wrapper').html('')
+    return toast({ time: 2000, msg: '聊天记录已清空！' })
+}
