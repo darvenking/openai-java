@@ -16,6 +16,21 @@
 
 ![](https://s2.loli.net/2023/02/17/wb6JUg4yeXmGOsk.png)
 
+### Docker一键运行项目
+
+docker镜像地址与教程：https://hub.docker.com/r/dqjdda/openai-java
+
+```bash
+# 参数说明见：https://hub.docker.com/r/dqjdda/openai-java
+docker run -d \
+--name openai --restart always \
+-p 18080:18080 \
+-e MAX_TOKENS=300 \
+-e TEMPERATURE=0.6 \
+-e KEYS=sk-xxxx,sk-xxxx \
+dqjdda/openai-java
+```
+
 ### 运行项目
 
 1. 修改 application.yml 中的 apiKey
