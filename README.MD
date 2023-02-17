@@ -14,14 +14,13 @@
 
 ![](https://s2.loli.net/2023/02/17/NZOTJCgKLzx3k19.png)
 
-![](https://s2.loli.net/2023/02/17/wb6JUg4yeXmGOsk.png)
-
 ### Docker一键运行项目
 
 docker镜像地址与教程：https://hub.docker.com/r/dqjdda/openai-java
 
 ```bash
-# 参数说明见：https://hub.docker.com/r/dqjdda/openai-java
+# 替换 KEYS 即可
+# 参数教程见：https://hub.docker.com/r/dqjdda/openai-java
 docker run -d \
 --name openai --restart always \
 -p 18080:18080 \
