@@ -1,7 +1,15 @@
-let apikey = ""
 let keepText = ""
 const apiUrl = "/api/openai"
 const errorMsg = "服务器在处理您的请求时遇到了错误，对此我深表歉意。请问我还有什么可以帮助您的吗？"
+
+// 读取localStorage内的数据
+let apikey = localStorage.getItem("apikey");
+// apikey 如果不为空，那么查询余额
+if(apikey != null){
+    $('#apikey').val(apikey);
+    keyclick();
+}
+
 // input 监听回车事件
 $("#kw-target").keydown(function (e){
   // 当 keyCode 是13时,是回车操作
@@ -12,6 +20,9 @@ $("#kw-target").keydown(function (e){
 $("#apikey").keydown(function (e){
     // 当 keyCode 是13时,是回车操作
     if (e.keyCode === 13){
+        // 将输入的apikey存入localStorage
+        localStorage.setItem("apikey", $('#apikey').val());
+        // 查询余额
         keyclick();
     }
 })
@@ -33,7 +44,7 @@ $.ajax({
     if(res.html==null || res.html==="")
             toast({ time: 2000, msg: errorMsg })
     else{
-            toast({ time: 2000, msg: '设置成功，余额已刷新' })
+            toast({ time: 2000, msg: '当前 APIKey 余额已刷新' })
             const currentBalance = $('#currentBalance');
             currentBalance.html("&nbsp;&nbsp当前余额：$" + parseFloat(res.html).toFixed(2))
     }
