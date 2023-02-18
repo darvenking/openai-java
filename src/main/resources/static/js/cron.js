@@ -20,16 +20,16 @@ $("#kw-target").keydown(function (e){
 $("#apikey").keydown(function (e){
     // 当 keyCode 是13时,是回车操作
     if (e.keyCode === 13){
-        // 将输入的apikey存入localStorage
-        localStorage.setItem("apikey", $('#apikey').val());
         // 查询余额
         keyclick();
     }
 })
 function keyclick(){
 apikey = $('#apikey').val()
+// 将输入的apikey存入localStorage
+localStorage.setItem("apikey", apikey);
 if (!apikey) {
-  return toast({ time: 1000, msg: '请输入你的APIKey' })
+  return;
 }
 $.ajax({
   url: apiUrl,//api接口
