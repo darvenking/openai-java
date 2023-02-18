@@ -26,9 +26,11 @@ $("#apikey").keydown(function (e){
 })
 function keyclick(){
 apikey = $('#apikey').val()
+const currentBalance = $('#currentBalance');
 // 将输入的apikey存入localStorage
 localStorage.setItem("apikey", apikey);
 if (!apikey) {
+  currentBalance.html("")
   return;
 }
 $.ajax({
@@ -45,7 +47,6 @@ $.ajax({
             toast({ time: 2000, msg: errorMsg })
     else{
             toast({ time: 2000, msg: '当前 APIKey 余额已刷新' })
-            const currentBalance = $('#currentBalance');
             currentBalance.html("&nbsp;&nbsp当前余额：$" + parseFloat(res.html).toFixed(2))
     }
     $('#kw-target').val('')
