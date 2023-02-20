@@ -104,7 +104,8 @@ function createArticle() {
 
       keepText = "Human:" + title + " AI:" + content + " " + keepText
 
-        articleWrapper.append('<li class="article-title">Me: ' + title + '<li>')
+      articleWrapper.append('<li class="article-title">Me: ' + title + '<li>')
+
       if(imageurl==null){
           articleWrapper.append('<li class="article-content" id=content'+number+'><pre></pre></li>')
           let i = 0;
@@ -121,12 +122,13 @@ function createArticle() {
               } else {
                 $('#content' + number).find('pre').text(str + "｜")
               }
+              window.scrollTo(0, document.body.scrollHeight)
             }, 60);
           }
       }else{
           articleWrapper.append('<li class="article-content" id=content'+number+'><img src="'+imageurl+'" alt=""></li>')
+          window.scrollTo(0, document.body.scrollHeight)
       }
-      window.scrollTo(0, document.body.scrollHeight)
       $('#kw-target').val('')
       $('.creating-loading').removeClass('isLoading')
     }
