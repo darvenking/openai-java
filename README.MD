@@ -27,6 +27,7 @@ docker run -d \
 -e MAX_TOKENS=300 \
 -e TEMPERATURE=0.6 \
 -e KEYS=sk-xxxx,sk-xxxx \
+-e BD_TONG_JI_TOKEN= \
 dqjdda/openai-java
 ```
 
