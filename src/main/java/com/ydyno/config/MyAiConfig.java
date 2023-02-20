@@ -20,8 +20,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
-import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /**
  * @author Zheng Jie
@@ -66,11 +66,14 @@ public class MyAiConfig {
     public String getApiKey() {
         // 转为 List
         List<String> keyList = ListUtil.toList(keys.split(","));
-        // 打乱顺序
-        if(keyList.size() > 1){
-            Collections.shuffle(keyList);
+        if(keyList.size() == 1){
+            return keyList.get(0);
         }
+        // 打乱顺序
+        Random random = new Random();
+        // 获取0~list.size()之间的随机数
+        int index = random.nextInt(keyList.size());
         // 获取一个 key
-        return keyList.get(0);
+        return keyList.get(index);
     }
 }
