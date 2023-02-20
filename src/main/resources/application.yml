@@ -18,3 +18,7 @@ openai:
   # 余额查询的API
   credit_api: https://api.openai.com/dashboard/billing/credit_grants
   # ${名称:值} 格式以便于在环境变量中配置，默认只需修改值即可
+
+baidu:
+  # 百度统计的API， 取 xxxx 填入即可 hm.src = "https://hm.baidu.com/hm.js?xxxx";
+  tong_ji_token: ${BD_TONG_JI_TOKEN:}
