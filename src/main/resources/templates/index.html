@@ -79,7 +79,7 @@
   <script src="/static/js/cron.js"></script>
   <script>
     // 百度统计Token获取
-    const bdTongJiToken = [[${@environment.getProperty('baidu.tong_ji_token')}]];
+    const bdTongJiToken = "[[${@environment.getProperty('baidu.tong_ji_token')}]]";
     // 判断是否有添加百度统计的token
     if(bdTongJiToken){
       var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?" + bdTongJiToken;var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s)})();
