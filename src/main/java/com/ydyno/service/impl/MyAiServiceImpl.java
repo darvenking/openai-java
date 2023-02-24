@@ -21,6 +21,7 @@ import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.CompletionRequest;
 import com.theokanning.openai.image.CreateImageRequest;
 import com.theokanning.openai.service.OpenAiService;
@@ -30,8 +31,8 @@ import com.ydyno.service.dto.OpenAiResult;
 import com.ydyno.service.MyAiService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import retrofit2.HttpException;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -70,11 +71,14 @@ public class MyAiServiceImpl implements MyAiService {
                 // 余额查询
                 case 3: return creditQuery(apikey);
                 // 默认返回
-                default: return OpenAiResult.builder().title(openAiDto.getText()).html("未知的请求类型").build();
+                default: return OpenAiResult.builder().code(400).title(openAiDto.getText()).html("未知的请求类型").build();
             }
-        } catch (Exception e) {
+        } catch (Exception e){
             e.printStackTrace();
-            return OpenAiResult.builder().title(openAiDto.getText()).html("不好意思，接口请求异常，请稍后再试！").build();
+            if(e instanceof OpenAiHttpException || e instanceof HttpException){
+                return OpenAiResult.builder().code(400).title(openAiDto.getText()).html("请求ChatGPT服务器出错，请稍后再试吧！").build();
+            }
+            return OpenAiResult.builder().code(400).title(openAiDto.getText()).html("请求ChatGPT服务异常，请稍后再试！").build();
         }
     }
 
@@ -112,6 +116,7 @@ public class MyAiServiceImpl implements MyAiService {
         textResult = textResult.replaceAll("^[^a-zA-Z\\u4e00-\\u9fa5]*", "");
         // 返回结果
         return OpenAiResult.builder()
+                .code(200)
                 .title(openAiDto.getText())
                 .html(textResult)
                 .build();
@@ -133,6 +138,7 @@ public class MyAiServiceImpl implements MyAiService {
         String imageResult = service.createImage(request).getData().get(0).getUrl();
         // 返回结果
         return OpenAiResult.builder()
+                .code(200)
                 .title(openAiDto.getText())
                 .url(imageResult)
                 .build();
@@ -149,10 +155,15 @@ public class MyAiServiceImpl implements MyAiService {
                 .header(Header.CONTENT_TYPE, "application/json")
                 .header(Header.AUTHORIZATION, "Bearer " + apikey)
                 .execute().body();
+        // 判断是否请求出错
+        if(result.contains("server_error")){
+            throw new RuntimeException("请求ChatGPT官方服务器出错");
+        }
         // 解析结果
         JSONObject jsonObject = JSONUtil.parseObj(result);
         // 返回结果
         return OpenAiResult.builder()
+                .code(200)
                 .html(jsonObject.getStr("total_available"))
                 .build();
     }
