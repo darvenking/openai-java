@@ -1,8 +1,37 @@
 let keepText = "";
+let tempKeepText = "";
 const apiUrl = "/api/openai";
+const uuid = crypto.randomUUID();
+let number = new Date().getSeconds();
+
+window.onload=function (){
+    indexMsg()
+}
+
+// 建立WS连接
+var path= window.location.protocol+'//' + window.location.host
+socket = new WebSocket((path + "/api/ws/" + uuid).replace("http", "ws")
+    .replace("https", "wss"));
+
+//打开事件
+socket.onopen = function () {
+    console.log("Socket连接已建立，正在等待数据...");
+};
+
+//关闭事件
+socket.onclose = function () {
+    toast({ time: 5000, msg: "Socket连接关闭了，请尝试刷新页面重新连接" });
+};
+
+//发生了错误事件
+socket.onerror = function () {
+    toast({ time: 5000, msg: "Socket连接发生了错误，请尝试刷新页面" });
+}
 
 const apikeyInput = $("#apikey");
 const kwTarget = $("#kw-target");
+const keepVal = $("#keep");
+const idVal = $("#id");
 
 // 读取localStorage内的数据
 let apikey = localStorage.getItem("apikey");
@@ -56,108 +85,79 @@ function keyclick() {
                 );
             }
             kwTarget.val("");
-            $(".creating-loading").removeClass("isLoading");
         }
     });
 }
 
 // 点击事件
 function aiClick() {
-    const safeHtml = kwTarget.val() || "";
-    if (!safeHtml) {
+    const title = kwTarget.val()
+    if (!title) {
         return toast({ time: 2000, msg: "来问点什么吧" });
     }
-    createArticle();
+    createArticle(title);
 }
 
 // 请求AI回复方法
-function createArticle() {
+function createArticle(title) {
     apikey = apikeyInput.val();
-    const safeHtml = window.encodeURIComponent(kwTarget.val()) || "";
-    if (!safeHtml) {
-        return toast({ time: 2000, msg: "来问点什么吧" });
-    }
-    let user_id = "";
-    let locationHref = window.location.href
-        .slice(window.location.href.indexOf("?") + 1)
-        .split("&");
-    locationHref.forEach(function (val) {
-        let parameter = val.slice(0, val.indexOf("=")); //属性
-        let data = val.slice(val.indexOf("=") + 1); //值
-        if (parameter === "user_id") {
-            user_id = data;
-        }
-    });
 
     $("#article").removeClass("created");
+
+    const id = idVal.val()
+
+    if(keepVal.val() === "1"){
+        keepText = tempKeepText + keepText;
+        tempKeepText = "Human:" + title + " AI:"
+    }
+
+    const data = JSON.stringify({
+        text: title, id: id, apikey: apikey, keep: keepVal.val(), keepText: title + (keepText ? "\n" + keepText : ""),
+    })
+
+    const articleWrapper = $("#article-wrapper");
+
+    articleWrapper.append(
+        '<li class="article-title">Me: ' + title + "<li>"
+    );
+
     $(".creating-loading").addClass("isLoading");
 
-    $.ajax({
-        url: apiUrl,
-        type: "post",
-        data: JSON.stringify({
-            text: safeHtml,
-            id: $("#id").val(),
-            apikey: apikey,
-            keep: $("#keep").val(),
-            keepText: safeHtml + "\n" + keepText,
-        }),
-        contentType: "application/json",
-        dataType: "json",
-        success: function (res) {
-            const title = res.title;
-            const articleWrapper = $("#article-wrapper");
-            const content = res.html;
-            const imageurl = res.url;
-            const number = new Date().getSeconds();
+    number = new Date().getSeconds();
 
-            keepText = "Human:" + title + " AI:" + content + " " + keepText;
+    kwTarget.val("")
 
-            articleWrapper.append(
-                '<li class="article-title">Me: ' + title + "<li>"
-            );
+    if(idVal.val() === "1"){
+        articleWrapper.append(
+            '<li class="article-content hide-class" id=content' +
+            number +
+            "><pre></pre></li>"
+        );
+    }
 
-            if (imageurl == null) {
-                articleWrapper.append(
-                    '<li class="article-content" id=content' +
-                    number +
-                    "><pre></pre></li>"
-                );
-                let i = 0;
-                const interval = setInterval(() => {
-                    i++;
-                    str = content.substr(0, i);
-                    if (i > content.length) {
-                        $("#content" + number)
-                            .find("pre")
-                            .text(str);
-                        clearInterval(interval);
-                    } else {
-                        $("#content" + number)
-                            .find("pre")
-                            .text(str + "｜");
-                    }
-                    window.scrollTo(0, document.body.scrollHeight);
-                }, 60);
-            } else {
-                articleWrapper.append(
-                    '<li class="article-content" id=content' +
-                    number +
-                    '><img src="' +
-                    imageurl +
-                    '" alt=""></li>'
-                );
-                window.scrollTo(0, document.body.scrollHeight);
-            }
-            kwTarget.val("");
-            $(".creating-loading").removeClass("isLoading");
-        },
-    });
+    socket.send(data)
 }
+
+//获得消息事件
+socket.onmessage = function (msg) {
+    const id = idVal.val()
+    const contentHtml = $("#content" + number)
+    const articleWrapper = $("#article-wrapper");
+    if(id === "1"){
+        tempKeepText += msg.data;
+        contentHtml.removeClass("hide-class");
+        contentHtml.find("pre").html(contentHtml.find("pre").html() + msg.data);
+    } else {
+        articleWrapper.append(
+            '<li class="article-content" id=content' + number + '><img src="' + msg.data + '" alt=""></li>'
+        );
+    }
+    $(".creating-loading").removeClass("isLoading");
+};
 
 // 连续对话开关
 function keepChange() {
-    if ($("#keep").val() === "1") {
+    if (keepVal.val() === "1") {
         toast({
             time: 4000,
             msg: "连续对话已打开，请求受Token的长度影响，建议使用自己的APIKey",
@@ -172,4 +172,9 @@ function clearReply() {
     keepText = "";
     $("#article-wrapper").html("");
     return toast({ time: 2000, msg: "聊天记录已清空！" });
+}
+
+// 清空聊天记录
+function indexMsg() {
+    return toast({ time: 6000, msg: "网站版本为最新体验版，AI回复毫秒级响应，体验更好，新版暂不开源" });
 }

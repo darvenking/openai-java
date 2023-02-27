@@ -15,9 +15,8 @@
  */
 package com.ydyno.ai.rest;
 
-import cn.hutool.core.util.URLUtil;
 import com.ydyno.service.dto.OpenAiRequest;
-import com.ydyno.service.MyAiService;
+import com.ydyno.service.OpenAiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,15 +29,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/openai")
-public class ApiController {
+public class OpenAiController {
 
-    private final MyAiService openAiService;
+    private final OpenAiService openAiService;
 
     @PostMapping
-    public ResponseEntity<Object> query(@RequestBody OpenAiRequest openAiDto) {
-        // Url 解码
-        openAiDto.setText(URLUtil.decode(openAiDto.getText()));
-        openAiDto.setKeepText(URLUtil.decode(openAiDto.getKeepText()));
-        return new ResponseEntity<>(openAiService.query(openAiDto), HttpStatus.OK);
+    public ResponseEntity<Object> creditQuery(@RequestBody OpenAiRequest openAiDto) {
+        return new ResponseEntity<>(openAiService.creditQuery(openAiDto), HttpStatus.OK);
     }
 }

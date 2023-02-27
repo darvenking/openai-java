@@ -1968,3 +1968,7 @@ a.unlinks-deco{
   -webkit-animation-direction: reverse;
           animation-direction: reverse; 
 }
+
+.hide-class{
+  display: none;
+}

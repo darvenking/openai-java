@@ -14,7 +14,11 @@ openai:
   # 默认的AI模型
   model: text-davinci-003
   # 多个Key用,分割
-  keys: ${KEYS:sk-xxxxxxxxxxxxxxx,sk-xxxxxxxxxxxxxxx}
+  keys: ${KEYS:}
+  # 综合问答API
+  openai_api: https://api.openai.com/v1/completions
+  # 图片问答API
+  image_api: https://api.openai.com/v1/images/generations
   # 余额查询的API
   credit_api: https://api.openai.com/dashboard/billing/credit_grants
   # ${名称:值} 格式以便于在环境变量中配置，默认只需修改值即可

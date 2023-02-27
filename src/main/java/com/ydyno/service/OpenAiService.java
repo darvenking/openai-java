@@ -23,11 +23,20 @@ import com.ydyno.service.dto.OpenAiResult;
  * @description OpenAi服务接口
  * @date 2023-02-15
  **/
-public interface MyAiService {
+public interface OpenAiService {
 
     /**
-     * 问答，绘画，余额查询
+     * 查询余额
      * @param openAiDto /
+     * @return /
      */
-    OpenAiResult query(OpenAiRequest openAiDto);
+    OpenAiResult creditQuery(OpenAiRequest openAiDto);
+
+    /**
+     * 问答，绘画
+     *
+     * @param openAiDto       /
+     * @param webSocketServer /
+     */
+    void communicate(OpenAiRequest openAiDto, WebSocketServer webSocketServer) throws Exception;
 }
