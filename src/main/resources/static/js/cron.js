@@ -1,7 +1,7 @@
 let keepText = "";
 let tempKeepText = "";
 const apiUrl = "/api/openai";
-const uuid = crypto.randomUUID();
+const uuid = getUuid();
 let number = new Date().getSeconds();
 
 // 建立WS连接
@@ -11,17 +11,17 @@ socket = new WebSocket((path + "/api/ws/" + uuid).replace("http", "ws")
 
 //打开事件
 socket.onopen = function () {
-    console.log("Socket连接已建立，正在等待数据...");
+    console.log(uuid + " - Socket连接已建立，正在等待数据...");
 };
 
 //关闭事件
 socket.onclose = function () {
-    toast({ time: 5000, msg: "Socket连接关闭了，请尝试刷新页面重新连接" });
+    toast({ time: 5000, msg: uuid + " - Socket连接关闭了，请尝试刷新页面重新连接" });
 };
 
 //发生了错误事件
 socket.onerror = function () {
-    toast({ time: 5000, msg: "Socket连接发生了错误，请尝试刷新页面" });
+    toast({ time: 5000, msg: uuid + " - Socket连接发生了错误，请尝试刷新页面" });
 }
 
 const apikeyInput = $("#apikey");
@@ -168,4 +168,12 @@ function clearReply() {
     keepText = "";
     $("#article-wrapper").html("");
     return toast({ time: 2000, msg: "聊天记录已清空！" });
+}
+
+function getUuid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = (Math.random() * 16) | 0,
+            v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
 }
