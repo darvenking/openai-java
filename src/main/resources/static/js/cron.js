@@ -4,10 +4,6 @@ const apiUrl = "/api/openai";
 const uuid = crypto.randomUUID();
 let number = new Date().getSeconds();
 
-window.onload=function (){
-    indexMsg()
-}
-
 // 建立WS连接
 var path= window.location.protocol+'//' + window.location.host
 socket = new WebSocket((path + "/api/ws/" + uuid).replace("http", "ws")
@@ -172,9 +168,4 @@ function clearReply() {
     keepText = "";
     $("#article-wrapper").html("");
     return toast({ time: 2000, msg: "聊天记录已清空！" });
-}
-
-// 清空聊天记录
-function indexMsg() {
-    return toast({ time: 6000, msg: "网站版本为最新体验版，AI回复毫秒级响应，体验更好，新版暂不开源" });
 }
