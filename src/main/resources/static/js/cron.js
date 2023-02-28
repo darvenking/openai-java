@@ -4,24 +4,62 @@ const apiUrl = "/api/openai";
 const uuid = getUuid();
 let number = new Date().getSeconds();
 
-// 建立WS连接
-var path= window.location.protocol+'//' + window.location.host
-socket = new WebSocket((path + "/api/ws/" + uuid).replace("http", "ws")
-    .replace("https", "wss"));
+// 重连次数
 
-//打开事件
-socket.onopen = function () {
-    console.log(uuid + " - Socket连接已建立，正在等待数据...");
-};
+// WS连接地址
+const wsServer= (window.location.protocol+'//' + window.location.host + "/api/ws/" + uuid)
+    .replace("http", "ws")
+    .replace("https", "wss");
 
-//关闭事件
-socket.onclose = function () {
-    toast({ time: 5000, msg: uuid + " - Socket连接关闭了，请尝试刷新页面重新连接" });
-};
+//socket初始化
+let socket;
+let reconnectCount;
+webSocketInit();
+function webSocketInit() {
 
-//发生了错误事件
-socket.onerror = function () {
-    toast({ time: 5000, msg: uuid + " - Socket连接发生了错误，请尝试刷新页面" });
+    // 实例化WebSocket
+    socket = new WebSocket(wsServer);
+
+    //打开事件
+    socket.onopen = function () {
+        reconnectCount = 1;
+        console.log("WebSockets连接已建立，正在等待数据...");
+    };
+
+    //关闭事件
+    socket.onclose = function () {
+        if (reconnectCount <= 15) {
+            console.log("WebSockets连接关闭了，正在尝试第"+ reconnectCount++ +"次重新连接...");
+            reconnect();
+        } else {
+            console.log("WebSockets连接关闭了，重连次数超过15次，停止重连，如需继续使用，请刷新页面");
+            toast({ time: 6000, msg: "WebSockets连接关闭了，重连次数超过15次，停止重连，如需继续使用，请刷新页面" });
+        }
+    };
+
+    //获得消息事件
+    socket.onmessage = function (msg) {
+        const id = idVal.val()
+        const contentHtml = $("#content" + number)
+        const articleWrapper = $("#article-wrapper");
+        if(id === "1"){
+            tempKeepText += msg.data;
+            contentHtml.removeClass("hide-class");
+            contentHtml.find("pre").html(contentHtml.find("pre").html() + msg.data);
+        } else {
+            articleWrapper.append(
+                '<li class="article-content" id=content' + number + '><img src="' + msg.data + '" alt=""></li>'
+            );
+        }
+        $(".creating-loading").removeClass("isLoading");
+    };
+}
+
+// 重连
+function reconnect() {
+    setTimeout(function () {
+        webSocketInit();
+    }, 2000);
 }
 
 const apikeyInput = $("#apikey");
@@ -131,23 +169,6 @@ function createArticle(title) {
     socket.send(data)
 }
 
-//获得消息事件
-socket.onmessage = function (msg) {
-    const id = idVal.val()
-    const contentHtml = $("#content" + number)
-    const articleWrapper = $("#article-wrapper");
-    if(id === "1"){
-        tempKeepText += msg.data;
-        contentHtml.removeClass("hide-class");
-        contentHtml.find("pre").html(contentHtml.find("pre").html() + msg.data);
-    } else {
-        articleWrapper.append(
-            '<li class="article-content" id=content' + number + '><img src="' + msg.data + '" alt=""></li>'
-        );
-    }
-    $(".creating-loading").removeClass("isLoading");
-};
-
 // 连续对话开关
 function keepChange() {
     if (keepVal.val() === "1") {
@@ -168,7 +189,7 @@ function clearReply() {
 }
 
 function getUuid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    return 'xxxxxxxxxxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         var r = (Math.random() * 16) | 0,
             v = c === 'x' ? r : (r & 0x3) | 0x8;
         return v.toString(16);
