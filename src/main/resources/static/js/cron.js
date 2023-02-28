@@ -31,11 +31,8 @@ const idVal = $("#id");
 
 // 读取localStorage内的数据
 let apikey = localStorage.getItem("apikey");
-
-// apikey 如果不为空，那么查询余额
 if (apikey != null) {
     apikeyInput.val(apikey);
-    keyclick();
 }
 
 // 监听输入问题回车事件
