@@ -133,7 +133,7 @@ li.article-title {
 li.article-content {
    background: #434654;
    padding: 15px;
-   color: #fff;
+   color: #beb0b0;
    font-size:15px;
 }
 .article .creating-loading {
@@ -166,11 +166,23 @@ pre {
   white-space: pre-wrap;
 }
 
-#button2:{
+pre code{
+    display: inline-flex;
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: auto;
+    color: #000;
+    padding: 1px;
+}
+
+#button2 {
+    padding: 2px 5px;
     border-radius: 4px;
 }
-/*#button2:hover {*/
-/*    background-color: #4CAF50;*/
-/*    transition-duration: 1s;*/
-/*    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);*/
-/*}*/
+#button2:hover {
+    cursor: pointer;
+    background-color: #000000;
+    color: #ffffff;
+    transition-duration: 200ms;
+}

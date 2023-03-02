@@ -28,22 +28,12 @@ public class OpenAiRequest {
     /**
      * 请求类型：1文本，2图片，3余额
      */
-    private Integer id;
-
-    /**
-     * 连续对话
-     */
-    private Integer keep;
+    private Integer type;
 
     /**
      * 问题
      */
     private String text;
-
-    /**
-     * 连续对话的问题
-     */
-    private String keepText;
 
     /**
      * apiKey

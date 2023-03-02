@@ -32,13 +32,8 @@
               </div>
               <div class="precast-block" data-flex="main:left">
               <div class="input-group">
-                <span style="text-align: center;color:#9ca2a8">&nbsp;&nbsp;连续对话：</span>
-                <select id="keep" class="btn-default form-control" style="background-color: rgb(164,165,179);width:60px;" onchange="keepChange()">
-                  <option value="1">开启</option>
-                  <option value="2" selected>关闭</option>
-                </select>
                 <span style="text-align: center;color:#9ca2a8">&nbsp;&nbsp;ChatGPT版本：</span>
-                <select id="id" class="btn-default form-control" style="background-color: rgb(164,165,179);width:133px">
+                <select id="type" class="btn-default form-control" style="background-color: rgb(164,165,179);width:133px">
                   <option value="1">ChatGPT(综合版)</option>
                   <option value="2">ChatGPT(图像版)</option>
                 </select>
@@ -74,6 +69,8 @@
   <script src="https://cdn.staticfile.org/tippy.js/6.3.7/tippy-bundle.umd.js"></script>
   <script src="https://cdn.staticfile.org/wangEditor/10.0.13/wangEditor.min.js"></script>
   <script src="https://cdn.staticfile.org/jquery-tagsinput/1.3.6/jquery.tagsinput.min.js"></script>
+<!--  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/<version tag>/showdown.min.js"></script>-->
+  <script src="/static/js/showdown.min.js"></script>
   <script src="/static/js/toast.js"></script>
   <script src="/static/js/cron.js"></script>
   <script>

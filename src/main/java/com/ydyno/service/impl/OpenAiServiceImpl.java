@@ -18,6 +18,7 @@ package com.ydyno.service.impl;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.text.UnicodeUtil;
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
@@ -33,6 +34,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -83,21 +86,16 @@ public class OpenAiServiceImpl implements OpenAiService {
     public void communicate(OpenAiRequest openAiDto, WebSocketServer webSocketServer) throws Exception {
         // 获取apikey
         String apikey = openAiDto.getApikey();
-        //  获取最大返回字符数
-        Integer maxTokens = openAiConfig.getMaxTokens();
         // 如果没有传入apikey，则使用配置文件中的
         if(StrUtil.isBlank(apikey)){
             apikey = openAiConfig.getApiKey();
-        } else {
-            // 如果传入了apikey，max_tokens不能超过模型的上下文长度。大多数模型的上下文长度为 2048 个标记
-            maxTokens = 2048;
         }
         // 根据id判断调用哪个接口
         try {
-            switch (openAiDto.getId()){
+            switch (openAiDto.getType()){
                 // 文本问答
                 case 1:
-                    textQuiz(maxTokens, openAiDto, apikey, webSocketServer);
+                    textQuiz(openAiDto, apikey, webSocketServer);
                     break;
                 // 图片生成
                 case 2:
@@ -116,75 +114,41 @@ public class OpenAiServiceImpl implements OpenAiService {
     /**
      * 文本问答
      *
-     * @param maxTokens       最大字符数
      * @param openAiDto       请求参数
      * @param apikey          apikey
      * @param webSocketServer /
      */
-    private void textQuiz(Integer maxTokens, OpenAiRequest openAiDto, String apikey, WebSocketServer webSocketServer) throws Exception {
-        List<String> stopList = null;
-        // 获取本次的对话
-        String text = openAiDto.getText();
-        if(openAiDto.getKeep() == 1){
-            // 构建连续对话参数
-            stopList = ListUtil.toList("Human:","AI:");
-            // 保留上一次的对话
-            text = openAiDto.getKeepText();
-        }
-
-        Map<String, Object> params = MapUtil.ofEntries(
-                MapUtil.entry("prompt", text),
-                MapUtil.entry("max_tokens", maxTokens),
-                MapUtil.entry("stream", true),
-                MapUtil.entry("logprobs", 0),
-                MapUtil.entry("model", openAiConfig.getModel()),
-                MapUtil.entry("temperature", openAiConfig.getTemperature())
-        );
-
-        // 如果是连续对话，添加stop参数
-        if(openAiDto.getKeep() == 1){
-            params.put("stop", stopList);
-        }
+    private void textQuiz(OpenAiRequest openAiDto, String apikey, WebSocketServer webSocketServer) throws Exception {
+        Map<String, Object> params = new HashMap<>();
+        params.put("model",openAiConfig.getModel());
+        List<Map<String, Object>> map = new ArrayList<>();
+        Map<String, Object> params2 = new HashMap<>();
+        params2.put("role","user");
+        params2.put("content",openAiDto.getText());
+        map.add(params2);
+        params.put("messages",map);
 
         // 调用接口
-        HttpResponse result;
+        String result;
         try {
             result = HttpRequest.post(openAiConfig.getOpenaiApi())
                     .header(Header.CONTENT_TYPE, "application/json")
                     .header(Header.AUTHORIZATION, "Bearer " + apikey)
                     .body(JSONUtil.toJsonStr(params))
-                    .executeAsync();
+                    .executeAsync().body();
         }catch (Exception e){
             e.printStackTrace();
             webSocketServer.sendMessage("请求遇到了问题，请稍后再试");
             return;
         }
-
-        // 处理数据
-        String line;
-        BufferedReader reader = new BufferedReader(new InputStreamReader(result.bodyStream()));
-        boolean flag = false;
-        while((line = reader.readLine()) != null){
-            Pattern p = Pattern.compile("\"text\": \"(.*?)\"");
-            Matcher m = p.matcher(line);
-            if(m.find()) {
-
-                // 过滤开头多余\n
-                if(!"\\n".equals(m.group(1)) && !flag) {
-                    flag = true;
-                }
-
-                // 将\n和\t替换为html中的换行和制表
-                String data = UnicodeUtil.toString(m.group(1)).replace("\\n", "\n")
-                        .replace("\\t", "\t");
-
-                // 发送信息
-                if(flag) {
-                    webSocketServer.sendMessage(data);
-                }
-            }
+        if (StrUtil.isBlank(result)) {
+            // 发送信息
+            webSocketServer.sendMessage("请求遇到了问题，请稍后再试");
         }
-        reader.close();
+
+        // 发送信息
+        webSocketServer.sendMessage(JSONUtil.parse(result).getByPath("choices[0].message.content",String.class));
+
     }
 
     /**

@@ -8,15 +8,15 @@ spring:
 
 openai:
   # 默认的Token长度
-  max_tokens: ${MAX_TOKENS:512}
+  max_tokens: ${MAX_TOKENS:4096}
   # 尝试将值设为 0.9 以获得更有创意的回复，将值设为 0 以获得具有明确答案的回复
-  temperature: ${TEMPERATURE:0.6}
+  temperature: ${TEMPERATURE:0.9}
   # 默认的AI模型
-  model: text-davinci-003
+  model: gpt-3.5-turbo-0301
   # 多个Key用,分割
   keys: ${KEYS:}
   # 综合问答API
-  openai_api: https://api.openai.com/v1/completions
+  openai_api: https://api.openai.com/v1/chat/completions
   # 图片问答API
   image_api: https://api.openai.com/v1/images/generations
   # 余额查询的API
@@ -25,4 +25,4 @@ openai:
 
 baidu:
   # 百度统计的API， 取 xxxx 填入即可 hm.src = "https://hm.baidu.com/hm.js?xxxx";
-  tong_ji_token: ${BD_TONG_JI_TOKEN:}
+  tong_ji_token: ${BD_TONG_JI_TOKEN:e84223330db942ec83503e2825452f7a}

@@ -1,13 +1,11 @@
-let keepText = "";
-let tempKeepText = "";
 const apiUrl = "/api/openai";
-const uuid = getUuid();
 let number = new Date().getSeconds();
+let tempKeepText;
 
 // 重连次数
 
 // WS连接地址
-const wsServer= (window.location.protocol+'//' + window.location.host + "/api/ws/" + uuid)
+const wsServer= (window.location.protocol+'//' + window.location.host + "/api/ws/" + getUuid())
     .replace("http", "ws")
     .replace("https", "wss");
 
@@ -39,13 +37,14 @@ function webSocketInit() {
 
     //获得消息事件
     socket.onmessage = function (msg) {
-        const id = idVal.val()
+        let converter = new showdown.Converter();
+        const type = typeVal.val()
         const contentHtml = $("#content" + number)
         const articleWrapper = $("#article-wrapper");
-        if(id === "1"){
+        if(type === "1"){
             tempKeepText += msg.data;
             contentHtml.removeClass("hide-class");
-            contentHtml.find("pre").html(contentHtml.find("pre").html() + msg.data);
+            contentHtml.find("pre").html(contentHtml.find("pre").html() + converter.makeHtml(msg.data));
         } else {
             articleWrapper.append(
                 '<li class="article-content" id=content' + number + '><img src="' + msg.data + '" alt=""></li>'
@@ -65,7 +64,7 @@ function reconnect() {
 const apikeyInput = $("#apikey");
 const kwTarget = $("#kw-target");
 const keepVal = $("#keep");
-const idVal = $("#id");
+const typeVal = $("#type");
 
 // 读取localStorage内的数据
 let apikey = localStorage.getItem("apikey");
@@ -103,7 +102,7 @@ function keyclick() {
     $.ajax({
         url: apiUrl,
         type: "post",
-        data: JSON.stringify({ id: 3, apikey: apikey }),
+        data: JSON.stringify({ type: 3, apikey: apikey }),
         contentType: "application/json",
         dataType: "json",
         success: function (res) {
@@ -135,21 +134,16 @@ function createArticle(title) {
 
     $("#article").removeClass("created");
 
-    const id = idVal.val()
-
-    if(keepVal.val() === "1"){
-        keepText = tempKeepText + keepText;
-        tempKeepText = "Human:" + title + " AI:"
-    }
+    const type = typeVal.val()
 
     const data = JSON.stringify({
-        text: title, id: id, apikey: apikey, keep: keepVal.val(), keepText: title + (keepText ? "\n" + keepText : ""),
+        text: title, type: type, apikey: apikey,
     })
 
     const articleWrapper = $("#article-wrapper");
 
     articleWrapper.append(
-        '<li class="article-title">Me: ' + title + "<li>"
+        '<li class="article-title">我: ' + title + "<li>"
     );
 
     $(".creating-loading").addClass("isLoading");
@@ -158,7 +152,7 @@ function createArticle(title) {
 
     kwTarget.val("")
 
-    if(idVal.val() === "1"){
+    if(typeVal.val() === "1"){
         articleWrapper.append(
             '<li class="article-content hide-class" id=content' +
             number +

@@ -12,7 +12,7 @@
     <groupId>com.ydyno</groupId>
     <artifactId>openai</artifactId>
     <version>1.0.0</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
     <name>openai</name>
     <description>openai by java-sdk</description>
@@ -67,6 +67,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.plexpt</groupId>
+            <artifactId>chatgpt</artifactId>
+            <version>1.1.2</version>
         </dependency>
     </dependencies>
 
