@@ -13,39 +13,32 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.ydyno.service.impl;
+package com.ydyno.service;
 
 import cn.hutool.cache.Cache;
 import cn.hutool.cache.CacheUtil;
-import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.text.UnicodeUtil;
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.ydyno.config.OpenAiConfig;
-import com.ydyno.enums.YesOrNoEnum;
-import com.ydyno.service.WebSocketServer;
-import com.ydyno.service.dto.OpenAiRequest;
-import com.ydyno.service.dto.OpenAiResult;
-import com.ydyno.service.OpenAiService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import java.io.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Service;
+import com.ydyno.config.OpenAiConfig;
+import com.ydyno.enums.YesOrNoEnum;
+import com.ydyno.service.dto.OpenAiRequest;
+import com.ydyno.service.dto.OpenAiResult;
 
 /**
  * @author Zheng Jie
@@ -60,13 +53,13 @@ public class OpenAiServiceImpl implements OpenAiService {
     private final OpenAiConfig openAiConfig;
 
     //存放每个客户端对话的上下文信息。
-    private final Cache<String, Set<Map<String,Object>>> contextFifoCache = CacheUtil.newFIFOCache(1000);
+    private final Cache<String, Set<Map<String, Object>>> contextFifoCache = CacheUtil.newFIFOCache(1000);
 
     @Override
     public OpenAiResult creditQuery(OpenAiRequest openAiDto) {
         // 获取apikey
         String apikey = openAiDto.getApikey();
-        if(StrUtil.isBlank(apikey)){
+        if (StrUtil.isBlank(apikey)) {
             apikey = openAiConfig.getApiKey();
         }
         try {
@@ -76,7 +69,7 @@ public class OpenAiServiceImpl implements OpenAiService {
                     .header(Header.AUTHORIZATION, "Bearer " + apikey)
                     .execute().body();
             // 判断是否请求出错
-            if(result.contains("server_error")){
+            if (result.contains("server_error")) {
                 throw new RuntimeException("请求ChatGPT官方服务器出错");
             }
             // 解析结果
@@ -86,7 +79,7 @@ public class OpenAiServiceImpl implements OpenAiService {
                     .code(200)
                     .html(jsonObject.getStr("total_available"))
                     .build();
-        } catch (Exception e){
+        } catch (Exception e) {
             return OpenAiResult.builder().code(400).title(openAiDto.getText()).html("请求ChatGPT服务异常，请稍后再试！").build();
         }
     }
@@ -96,12 +89,12 @@ public class OpenAiServiceImpl implements OpenAiService {
         // 获取apikey
         String apikey = openAiDto.getApikey();
         // 如果没有传入apikey，则使用配置文件中的
-        if(StrUtil.isBlank(apikey)){
+        if (StrUtil.isBlank(apikey)) {
             apikey = openAiConfig.getApiKey();
         }
         // 根据id判断调用哪个接口
         try {
-            switch (openAiDto.getType()){
+            switch (openAiDto.getType()) {
                 // 文本问答
                 case 1:
                     textQuiz(openAiDto, apikey, webSocketServer);
@@ -114,7 +107,7 @@ public class OpenAiServiceImpl implements OpenAiService {
                 default:
                     webSocketServer.sendMessage("未知的请求类型");
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             webSocketServer.sendMessage("请求ChatGPT服务异常，请稍后再试！");
         }
@@ -133,24 +126,8 @@ public class OpenAiServiceImpl implements OpenAiService {
      * @param webSocketServer /
      */
     private void textQuiz(OpenAiRequest openAiDto, String apikey, WebSocketServer webSocketServer) throws Exception {
-        Map<String, Object> params = new HashMap<>();
-        params.put("model",openAiConfig.getModel());
-        List<Map<String, Object>> messages = new ArrayList<>();
-        Map<String, Object> message = new HashMap<>();
-        message.put("role","user");
-        message.put("content",openAiDto.getText());
-        messages.add(message);
-        //为对话添加上下文内容
-        if (openAiDto.getGoon() == YesOrNoEnum.YES.getCode()) {
-            Set<Map<String,Object>> strings = contextFifoCache.get(webSocketServer.getSid());
-            if (strings != null && !strings.isEmpty()){
-                messages.addAll(strings);
-            }
-        }
-        params.put("messages",messages);
-
-        //添加上下文环境
-        addContext(openAiDto,webSocketServer);
+        //构建请求参数
+        Map<String, Object> params = constructParam(openAiDto, webSocketServer);
 
         // 调用接口
         String result;
@@ -160,7 +137,7 @@ public class OpenAiServiceImpl implements OpenAiService {
                     .header(Header.AUTHORIZATION, "Bearer " + apikey)
                     .body(JSONUtil.toJsonStr(params))
                     .executeAsync().body();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             webSocketServer.sendMessage("请求遇到了问题，请稍后再试");
             return;
@@ -171,28 +148,37 @@ public class OpenAiServiceImpl implements OpenAiService {
         }
 
         // 发送信息
-        webSocketServer.sendMessage(JSONUtil.parse(result).getByPath("choices[0].message.content",String.class));
+        webSocketServer.sendMessage(JSONUtil.parse(result).getByPath("choices[0].message.content", String.class));
 
     }
 
     /**
-     * 添加上下文环境
-     * @param openAiDto
-     * @param webSocketServer
+     * 构造对话请求参数
+     *
+     * @param openAiDto       /
+     * @param webSocketServer /
      */
-    private void addContext(OpenAiRequest openAiDto, WebSocketServer webSocketServer){
-        if (openAiDto.getGoon() == YesOrNoEnum.YES.getCode()){
-            String sid = webSocketServer.getSid();
-            Set<Map<String,Object>> list = contextFifoCache.get(sid);
-            if (list == null){
-                list = new HashSet<>();
-            }
-            Map<String, Object> message = new HashMap<>();
-            message.put("role","user");
-            message.put("content",openAiDto.getText());
-            list.add(message);
-            contextFifoCache.put(sid,list);
+    private Map<String, Object> constructParam(OpenAiRequest openAiDto, WebSocketServer webSocketServer) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("model", openAiConfig.getModel());
+        List<Map<String, Object>> messages = new ArrayList<>();
+        Map<String, Object> message = new HashMap<>();
+        message.put("role", "user");
+        message.put("content", openAiDto.getText());
+        if (openAiDto.getGoon() == YesOrNoEnum.NOT.getCode()) {
+            messages.add(message);
+            params.put("messages", messages);
+            return params;
         }
+        //添加上下文环境 并且为对话添加上下文内容
+        Set<Map<String, Object>> contextList = contextFifoCache.get(webSocketServer.getSid());
+        if (contextList == null) {
+            contextList = new HashSet<>();
+        }
+        contextList.add(message);
+        params.put("messages", contextList);
+        contextFifoCache.put(webSocketServer.getSid(), contextList);
+        return params;
     }
 
     /**
@@ -217,7 +203,7 @@ public class OpenAiServiceImpl implements OpenAiService {
         // 正则匹配出结果
         Pattern p = Pattern.compile("\"url\": \"(.*?)\"");
         Matcher m = p.matcher(result);
-        if (m.find()){
+        if (m.find()) {
             webSocketServer.sendMessage(m.group(1));
         } else {
             webSocketServer.sendMessage("图片生成失败！");

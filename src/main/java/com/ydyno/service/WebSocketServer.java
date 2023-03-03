@@ -15,24 +15,21 @@
  */
 package com.ydyno.service;
 
-import cn.hutool.cache.Cache;
-import cn.hutool.cache.CacheUtil;
-import cn.hutool.core.util.URLUtil;
 import cn.hutool.json.JSONUtil;
-import com.ydyno.service.dto.OpenAiRequest;
-import com.ydyno.utils.SpringContextHolder;
+import java.io.IOException;
+import java.util.concurrent.CopyOnWriteArraySet;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import javax.websocket.*;
-import javax.websocket.server.PathParam;
-import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
+import com.ydyno.service.dto.OpenAiRequest;
+import com.ydyno.utils.SpringContextHolder;
 
 /**
  * WebSocketServer
@@ -93,6 +90,7 @@ public class WebSocketServer {
 
     /**
      * 收到客户端消息后调用的方法
+     *
      * @ Param message 客户端发送过来的消息
      */
     @OnMessage

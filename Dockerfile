@@ -1,5 +1,11 @@
-FROM openjdk:8
-ADD target/openai-1.0.0.war app.war
-RUN bash -c 'touch /app.war'
+FROM openjdk:17
+
+# 设置固定的项目路径
+ENV WORKDIR /home/chat
+ENV APPNAME app.jar
+
+ADD target/openai-1.0.0.jar $WORKDIR/$APPNAME
+RUN chmod +x $WORKDIR/$APPNAME
+
 ENTRYPOINT 9915
-ENTRYPOINT ["java", "-jar", "/app.war"]
+ENTRYPOINT ["java", "-jar", "/$APPNAME"]
