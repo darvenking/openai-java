@@ -15,6 +15,8 @@
  */
 package com.ydyno.service.impl;
 
+import cn.hutool.cache.Cache;
+import cn.hutool.cache.CacheUtil;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.text.UnicodeUtil;
@@ -26,6 +28,7 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.ydyno.config.OpenAiConfig;
+import com.ydyno.enums.YesOrNoEnum;
 import com.ydyno.service.WebSocketServer;
 import com.ydyno.service.dto.OpenAiRequest;
 import com.ydyno.service.dto.OpenAiResult;
@@ -36,8 +39,11 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,6 +58,9 @@ import java.util.regex.Pattern;
 public class OpenAiServiceImpl implements OpenAiService {
 
     private final OpenAiConfig openAiConfig;
+
+    //存放每个客户端对话的上下文信息。
+    private final Cache<String, Set<Map<String,Object>>> contextFifoCache = CacheUtil.newFIFOCache(1000);
 
     @Override
     public OpenAiResult creditQuery(OpenAiRequest openAiDto) {
@@ -111,6 +120,11 @@ public class OpenAiServiceImpl implements OpenAiService {
         }
     }
 
+    @Override
+    public void removeContext(String sid) {
+        contextFifoCache.remove(sid);
+    }
+
     /**
      * 文本问答
      *
@@ -121,12 +135,22 @@ public class OpenAiServiceImpl implements OpenAiService {
     private void textQuiz(OpenAiRequest openAiDto, String apikey, WebSocketServer webSocketServer) throws Exception {
         Map<String, Object> params = new HashMap<>();
         params.put("model",openAiConfig.getModel());
-        List<Map<String, Object>> map = new ArrayList<>();
-        Map<String, Object> params2 = new HashMap<>();
-        params2.put("role","user");
-        params2.put("content",openAiDto.getText());
-        map.add(params2);
-        params.put("messages",map);
+        List<Map<String, Object>> messages = new ArrayList<>();
+        Map<String, Object> message = new HashMap<>();
+        message.put("role","user");
+        message.put("content",openAiDto.getText());
+        messages.add(message);
+        //为对话添加上下文内容
+        if (openAiDto.getGoon() == YesOrNoEnum.YES.getCode()) {
+            Set<Map<String,Object>> strings = contextFifoCache.get(webSocketServer.getSid());
+            if (strings != null && !strings.isEmpty()){
+                messages.addAll(strings);
+            }
+        }
+        params.put("messages",messages);
+
+        //添加上下文环境
+        addContext(openAiDto,webSocketServer);
 
         // 调用接口
         String result;
@@ -149,6 +173,26 @@ public class OpenAiServiceImpl implements OpenAiService {
         // 发送信息
         webSocketServer.sendMessage(JSONUtil.parse(result).getByPath("choices[0].message.content",String.class));
 
+    }
+
+    /**
+     * 添加上下文环境
+     * @param openAiDto
+     * @param webSocketServer
+     */
+    private void addContext(OpenAiRequest openAiDto, WebSocketServer webSocketServer){
+        if (openAiDto.getGoon() == YesOrNoEnum.YES.getCode()){
+            String sid = webSocketServer.getSid();
+            Set<Map<String,Object>> list = contextFifoCache.get(sid);
+            if (list == null){
+                list = new HashSet<>();
+            }
+            Map<String, Object> message = new HashMap<>();
+            message.put("role","user");
+            message.put("content",openAiDto.getText());
+            list.add(message);
+            contextFifoCache.put(sid,list);
+        }
     }
 
     /**

@@ -15,6 +15,8 @@
  */
 package com.ydyno.service;
 
+import cn.hutool.cache.Cache;
+import cn.hutool.cache.CacheUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.json.JSONUtil;
 import com.ydyno.service.dto.OpenAiRequest;
@@ -26,6 +28,10 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -48,6 +54,10 @@ public class WebSocketServer {
 
     //接收sid
     private String sid = "";
+
+    public String getSid() {
+        return sid;
+    }
 
     /**
      * 连接建立成功调用的方法
@@ -73,6 +83,8 @@ public class WebSocketServer {
         webSocketSet.remove(this);
         //在线数减1
         subOnlineCount();
+        //删除上下文环境
+        SpringContextHolder.getBean(OpenAiService.class).removeContext(sid);
         //断开连接情况下，更新主板占用情况为释放
         log.info("释放的sid为：" + sid);
         //这里写你 释放的时候，要处理的业务

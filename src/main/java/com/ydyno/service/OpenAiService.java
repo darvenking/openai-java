@@ -39,4 +39,6 @@ public interface OpenAiService {
      * @param webSocketServer /
      */
     void communicate(OpenAiRequest openAiDto, WebSocketServer webSocketServer) throws Exception;
+
+    void removeContext(String sid);
 }

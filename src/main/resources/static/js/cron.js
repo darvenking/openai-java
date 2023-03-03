@@ -63,7 +63,7 @@ function reconnect() {
 
 const apikeyInput = $("#apikey");
 const kwTarget = $("#kw-target");
-const keepVal = $("#keep");
+const goonVal = $("#keep");
 const typeVal = $("#type");
 
 // 读取localStorage内的数据
@@ -135,9 +135,10 @@ function createArticle(title) {
     $("#article").removeClass("created");
 
     const type = typeVal.val()
+    const goon = goonVal.val()
 
     const data = JSON.stringify({
-        text: title, type: type, apikey: apikey,
+        text: title, type: type, apikey: apikey, goon: goon
     })
 
     const articleWrapper = $("#article-wrapper");
@@ -165,7 +166,7 @@ function createArticle(title) {
 
 // 连续对话开关
 function keepChange() {
-    if (keepVal.val() === "1") {
+    if (goonVal.val() === "1") {
         toast({
             time: 4000,
             msg: "连续对话已打开，请求受Token的长度影响，建议使用自己的APIKey",

@@ -16,6 +16,7 @@
 package com.ydyno.service.dto;
 
 import lombok.Data;
+import com.ydyno.enums.YesOrNoEnum;
 
 /**
  * @author Zheng Jie
@@ -39,4 +40,9 @@ public class OpenAiRequest {
      * apiKey
      */
     private String apikey;
+
+    /**
+     * 是否持续会话0否1是
+     */
+    private Integer goon = YesOrNoEnum.YES.getCode();
 }
